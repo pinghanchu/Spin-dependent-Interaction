@@ -19,6 +19,8 @@
 #include <ctime>
 #include <string>
 #include <bitset>
+#include <stdio.h>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -31,9 +33,9 @@ const long double Me = 9.11e-31;
 const long double C = 299792458.*pow(unit,2);
 const long double hbar = 1.055e-34*pow(unit,2);
 const long double pi= 3.14159265359;
-const long double particle_density= 4.29e30*pow(unit,-3); //BGO m^-3
+const long double particle_density1= 4.29e30*pow(unit,-3); //BGO m^-3
 //const long double particle_density= 6e28*pow(unit,-3); //AlNiCo m^-3; it can be spin density; PRL97, 021603
-//const long double particle_density= 1e26*pow(unit,-3);//DyIG m^-3
+const long double particle_density2= 1e26*pow(unit,-3);//DyIG m^-3
 //const long double normalization = 2.6518477625e-43*pow(unit,4);
 //normalization=hbar^2/8pi/m_n  (kg^2.m^4/s^4/kg = kg.m^4/s^4)
 //normalization=(1.055e-34*1.055e-34)/(25.1327*1.67e-27)
@@ -58,23 +60,26 @@ const long double normalization16 = -pow(hbar,2)/(8.*pi*Me*C*C);
 //////////////////////////////////////////////////////
 const int MAXNUM = pow(2,8);//2^20
 const long double cycles = 120;
-const long double gyroratio = 4.396*pow(10,10);
-const long double magsen = 3.81*pow(10,-15); 
+const long double gyroratio = 4.396*pow(10,10); // 2pi*7*10^9 Hz/T
+const long double magsen = 3.81*pow(10,-15); // magnetic field sensitivity in Tesla 
+//const long double magsen = 10*pow(10,-15); // magnetic field sensitivity in Tesla
 const long double freqshift = gyroratio*magsen/sqrt(cycles);//Hz
 const long double amp = 0.005*unit; // source mass amplitude; modulation amplitude 
 const long double gap = 0.005*unit; // gap between source mass and detector (3He)
 const long double omega = 2*pi*1; // 1Hz
 const long double V = amp*omega;//~0.003 m/s
-const long double shape1[3]={0.003*unit,0.003*unit,0.003*unit};
+const long double cellsize = 0.003;
+const long double samplesize = 0.02;
+const long double shape1[3]={cellsize*unit,cellsize*unit,cellsize*unit};
 // shape of detector in cartesian coordinate
-const long double shape2[3]={0.02*unit,0.02*unit,0.02*unit};
+const long double shape2[3]={samplesize*unit,samplesize*unit,samplesize*unit};
 // shape of source mass in cartesian coordinate
 const long double bounds1[6]={shape1[0]*0.5*unit,-shape1[0]*0.5*unit,shape1[1]*0.5*unit,-shape1[1]*0.5*unit,shape1[2]*0.5*unit,-shape1[2]*0.5*unit};
 // boundaries of detector in cartesian coordinates
-long double maxlength = sqrt(pow(shape2[0],2)*3)+gap;
+long double maxlength = sqrt(pow(shape2[0],2)*3)+gap+amp;
 //long double maxlength = gap + sqrt(pow(shape1[0],2)*2+pow(shape1[2]*2,2))+sqrt(pow(shape2[0],2)*3);
 //long double maxlength = sqrt(pow(shape1[0]*0.5+shape2[0]*0.5,2)*2+pow(shape1[2]+shape1[0]*0.5+gap+shape2[2],2));
-const long double bounds2[6]={maxlength*unit,gap,0.5*pi,0.,2.*pi,0.};
+const long double bounds2[6]={maxlength*unit,gap+amp,0.5*pi,0.,2.*pi,0.};
 // boundaries of source mass in spherical coordinates (rho, theta, phi)
 // rho = sqrt(0.05^2+0.05^2+0.05^2); the maximum distance in the mass
 // rho + shape1[3]*2 + gap = 
@@ -139,7 +144,7 @@ int inside(long double lower[], long double upper[], long double point[],int n){
     //if(point[2]>0.05){
     //cout << "z " << point[2] << " " << lower[2] << " " << upper[2] << endl;
     //}
-          return x;
+    return x;
   }
 }
 int insidecylinder(long double lower[], long double upper[], long double point[],int n){
@@ -274,11 +279,12 @@ long double f4(long double x[], long double forcelength){
   //= (\rho\sin(\theta)\omega)(-\sin(\theta))(1/rho\lambda+1/rho^2)rho^2 exp(-rho/\lambda) dr \sin\thetad\theta
   //= (-\rho\omega)(\rho/\lambda+1)r^\prime(-\lambda/r^\prime dr^\prime) \sin^3\theta d\ehta
   //= (\rho\omega)(\rho+\lambda)dr^\prime \sin^3 d\theta
-  long double dftot = (forcelength+rho)*(rho*omega)*pow(sin(theta),3);
+
+  long double dftot = (forcelength+rho)*(rho*omega)*pow(sin(theta),3); // rotation
 
   ///////////////////////////////////////
   //velocity is perpendicular to sigma_1
-  //long double dftot = V*(forcelength+rho)*pow(sin(theta),2);
+  //long double dftot = V*(forcelength+rho)*pow(sin(theta),2); // moving +- x-axis
   //do a transform : r^\prime = \exp(-r/\lambda)
   // dr = -\lambda/r^\prime dr^\prime
   //////////////////////////////////////
@@ -289,6 +295,8 @@ long double f4(long double x[], long double forcelength){
 }
 
 long double f6(long double x[], long double forcelength){
+
+  // mass moving forward and backward
   long double rho = -forcelength*log(x[3]);
   //long double rho = x[3];
   long double theta = x[4];
@@ -302,6 +310,7 @@ long double f6(long double x[], long double forcelength){
 }
 
 long double f8(long double x[], long double forcelength){
+  // mass moving forward and backward
   long double rho = -forcelength*log(x[3]);
   //long double rho = x[3];
   long double theta = x[4];
@@ -321,6 +330,7 @@ long double f8(long double x[], long double forcelength){
 }
 
 long double f9(long double x[], long double forcelength){
+  // mass moving forward and backward
   long double rho = -forcelength*log(x[3]);
   //long double rho = x[3];
   long double theta = x[4];
@@ -415,7 +425,7 @@ long double f16(long double x[], long double forcelength){
   return dftot;
 }
 
-long double integration(long double range, int index_f){
+long double integration(long double range, int index_f,int position){
 
   int n = 6;
 
@@ -423,8 +433,15 @@ long double integration(long double range, int index_f){
   long double low1[3];
   long double up2[3];
   long double low2[3];
-  //long double asinom = amp*sin(omega*1*0.25); // the distance because of moving; t=1/4, omega=2pi*1, maximum distance
-  long double asinom = 0.;
+  long double asinom1 = amp*sin(omega*1*0.25); // the distance because of moving; t=1/4, omega=2pi*1, maximum distance
+  long double asinom2 = 0.;
+  long double asinom = asinom2;
+  if( position ==1){
+    asinom = asinom1;
+  }else{
+    asinom = asinom2;
+  }
+  cout << " maximum distance " <<  asinom+gap << endl;
 ////////////////////////////////////////////////////
   // setup the boundary corrdinate of detector and mass
   // detector
@@ -499,6 +516,8 @@ long double integration(long double range, int index_f){
   long double W = 0.;
   int count = 0 ;
   int totalcount = 0;
+  double nf = normalization4; 
+  double pd = particle_density1;
   while (count < MAXNUM){
     dice(x,a,b,n);
     totalcount++;
@@ -532,32 +551,56 @@ long double integration(long double range, int index_f){
     x[5] = Phip;
     */
     //cout << x[3] << " "  << x[4] << " " << x[5]  << " " << cos(x[5]) << " " << sin(x[5]) <<endl;
-    in1 = insidecylinder(low1,up1,point1,3);
+    //in1 = insidecylinder(low1,up1,point1,3);
+    in1 = inside(low1,up1,point1,3);
     in2 = inside(low2,up2,point2,3);
     long double xx = 0;
+    
     if(in1>0 && in2>0){
       if(index_f ==2){
 	xx = f2(x,range);
+	nf = normalization2;
+	pd = particle_density2;
       }else if(index_f == 3){
 	xx = f3(x,range);
+	nf = normalization3;
+        pd = particle_density2;
       }else if(index_f == 4){
 	xx = f4(x,range);
+	nf = normalization4;
+        pd = particle_density1;
       }else if(index_f == 6){
 	xx = f6(x,range);
+	nf = normalization6;
+        pd = particle_density2;
       }else if(index_f == 8){
 	xx = f8(x,range);
+	nf = normalization8;
+        pd = particle_density2;
       }else if(index_f == 9){
 	xx = f9(x,range);
+	nf = normalization9;
+        pd = particle_density1;
       }else if(index_f == 11){
 	xx = f11(x,range);
+	nf = normalization11;
+        pd = particle_density2;
       }else if(index_f == 12){
 	xx = f12(x,range);
+	nf = normalization12;
+        pd = particle_density1;
       }else if(index_f == 14){
 	xx = f14(x,range);
+	nf = normalization14;
+        pd = particle_density2;
       }else if(index_f == 15){
 	xx = f15(x,range);
+	nf = normalization15;
+        pd = particle_density2;
       }else if(index_f == 16){
 	xx = f16(x,range);
+	nf = normalization16;
+        pd = particle_density2;
       }else{
 	cout << "No Interaction!" << endl;
       }
@@ -566,8 +609,7 @@ long double integration(long double range, int index_f){
     }
   }
 
-  W = normalization4*particle_density*(dftot/count)*(volumn*count/totalcount);
-
+  W = nf*pd*(dftot/count)*(volumn*count/totalcount);
   return W;
 
   //  return 1;
@@ -584,17 +626,24 @@ int main(int argc, char** argv)
   long double range = 0.;
   long double x= 0.;
   long double y= 0.1;
+
+  string ind = to_string(index_f);
+  string pos = to_string(position);
+
+  string file1 = "./potential_";
+  string file2 = "./coupling_";
+  string filename1 = file1 + ind + "_" +pos+".txt";
+  string filename2 = file2 + ind + "_" +pos+".txt";
+
   ofstream fout1;
-  fout1.open("potential.txt");
+  fout1.open(filename1);
   ofstream fout2;
-  //string filename = Form("./data/coupling_%d_%d.txt",index_f,position);
-  string filename = "coupling.txt";
-  fout2.open(filename);
+  fout2.open(filename2);
     
   for(int i = 0; i< 6;i++){
     for(int j = 1 ; j <=9;j++){
       range = 0.00001*pow(10,i)*j*pow(unit,1); // force interaction length (m)
-      x=integration(range,index_f);
+      x=integration(range,index_f,position);
       y=abs(freqshift*hbar/x);
       fout1 << range << " " << x << endl;
       fout2 << range << " " << log10(y) << endl;

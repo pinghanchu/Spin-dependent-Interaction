@@ -69,11 +69,49 @@ Double_t horizontal(Double_t *v, Double_t *par){
 
 int main(int argc, char** argv)
 {
-  if(argc != 2) {
-    cout << "Usage: " << argv[0] << " [random ]" << endl;
+  if(argc != 5) {
+    cout << "Usage: " << argv[0] << " [index_f] [position] [max] [min]" << endl;
     return 1;
   }
 
+  int index_f = atoi(argv[1]);
+  int position = atoi(argv[2]);
+  int max = atoi(argv[3]);
+  int min = atoi(argv[4]);
+  string ind = to_string(index_f);
+  string pos = to_string(position);
+
+  string file1 = "./potential_";
+  string file2 = "./coupling_";
+  string filename1 = file1 + ind + "_" +pos+".txt";
+  string filename2 = file2 + ind + "_" +pos+".txt";
+  string filename3 = file2 + ind + "_" +pos+".pdf";
+
+  string forcename = "";
+  if(index_f ==2){
+    forcename = "2";
+  }else if(index_f == 3){
+    forcename = "3";
+  }else if(index_f == 4){
+    forcename = "4+5";
+  }else if(index_f == 6){
+    forcename = "6+7";
+  }else if(index_f == 8){
+    forcename = "8";
+  }else if(index_f == 9){
+    forcename = "9+10";
+  }else if(index_f == 11){
+    forcename = "11";
+  }else if(index_f == 12){
+    forcename = "12+13";
+  }else if(index_f == 14){
+    forcename = "14";
+  }else if(index_f == 15){
+    forcename = "15";
+  }else if(index_f == 16){
+    forcename = "16";
+  }
+  
   gStyle->SetOptStat(0);
   gStyle->SetOptFit(111);
   gStyle->SetFrameBorderMode(0);
@@ -82,7 +120,7 @@ int main(int argc, char** argv)
 
   const int input =1;
   ifstream fin[input];
-  fin[0].open("./data/coupling.12.txt");
+  fin[0].open(filename2);
   //  fin[1].open("./data/Long.12.txt");
   //fin[2].open("./data/Chu.12.txt");
   //fin[3].open("./data/coupling.12.opt.txt");
@@ -176,21 +214,24 @@ int main(int argc, char** argv)
   gPad->SetBottomMargin(0.12);
   gPad->SetRightMargin(0.08);
   gPad->SetTopMargin(0.05);
-  mg->SetTitle(";#lambda(m);Log(f_{12+13})");
+
+
+  mg->SetTitle(Form(";#lambda(m);Log(f_{%s})",forcename.c_str()));
   mg->Draw("a");
   mg->GetXaxis()->SetLimits(0.000001,0.2);
-  mg->SetMinimum(-33.);
-  mg->SetMaximum(-10.);
+  mg->SetMinimum(min);
+  mg->SetMaximum(max);
+
   mg->GetXaxis()->SetLabelSize(0.05);
   mg->GetXaxis()->SetTitleSize(0.05);
   mg->GetXaxis()->SetTitleOffset(1.1);
   mg->GetYaxis()->SetLabelSize(0.05);
   mg->GetYaxis()->SetTitleSize(0.05);
   mg->GetYaxis()->SetTitleOffset(1.1);
- 
+
   TF1 *f1 = new TF1("f1",inverse,1e-6,2e-1,1);
   f1->SetParameter(0,2e-7);
-  TGaxis *ax1 = new TGaxis(2e-1,-10,1e-6,-10,"f1",510,"G+");
+  TGaxis *ax1 = new TGaxis(2e-1,max,1e-6,max,"f1",510,"G+");
   ax1->SetTitle("m(eV)");
   ax1->SetLabelSize(0.);
   ax1->SetLabelOffset(-0.04);
@@ -200,9 +241,9 @@ int main(int argc, char** argv)
   ax1->SetTitleOffset(1.2);
   ax1->Draw();
 
-  TLatex latex;
-  latex.SetTextSize(0.05);
-  latex.DrawLatex(1.4e-4,-25,"case 1");
+  //TLatex latex;
+  //latex.SetTextSize(0.05);
+  //latex.DrawLatex(1.4e-4,-25,"case 1");
 
   /*
 
@@ -218,7 +259,7 @@ int main(int argc, char** argv)
   leg->SetBorderSize(0);
   leg->Draw();
   */
-  c1->Print("sensitivity_12.pdf");
+  c1->Print(filename3.c_str());
   return 1;
 }
 
