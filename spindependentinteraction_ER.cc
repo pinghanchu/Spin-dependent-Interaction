@@ -242,10 +242,6 @@ long double f2(long double x[], long double forcelength){
   //long double rho = x[3];
   long double theta = x[4];
   //cout << x[3] << " " << rho << endl;
-  //long double dftot = \sigma_1\dot\sigma_2 (1/\rho) exp(-\rho/\lambda)d\rho
-  //*pow(\rho,2)*sin(\theta)d\theta;
-  //= -\rho \lambda dr^\prime \sin(\theta)d\theta
-
   long double dftot = -forcelength*rho*sin(theta);
 
   //do a transform : r^\prime = \exp(-\rho/\lambda)
@@ -260,12 +256,8 @@ long double f3(long double x[], long double forcelength){
   //long double rho = x[3];
   long double theta = x[4];
   //cout << x[3] << " " << rho << endl;
-  //long double dftot = (\sigma_1\dot\sigma_2)(1/\lambda\rho^2+1/\rho^3)-(\sigma_1\cdot\hat{r})(\sigma_2\cdot\hat{r})(1/\lambda^2\rho+3/\lambda\rho^2+3/\rho^3) exp(-\rho/\lambda)d\rho
-  //*pow(\rho,2)*sin(\theta)d\theta;
-  //=( (1/\lambda+1/\rho)-\cos^2\theta(\rho/\lambda^2+3/\lambda+3/\rho))r^\prime (-\lambda/r^\prime dr^\prime)\sin\theta d\theta
-  //=-((1+\lambda/\rho)-\cos^2\theta(\rho/\lambda+3+3\lambda/\rho))dr^\prime sin\theta\d\theta
 
-  long double dftot = -((1+forcelength/rho)-cos(theta)*cos(theta)*(rho/forcelength+3+3*forcelength/rho))*sin(theta);
+  long double dftot = -((1+forcelength/rho)-pow(cos(theta),2)*(rho/forcelength+3+3*forcelength/rho))*sin(theta);
 
   return dftot;
 }
@@ -278,12 +270,7 @@ long double f4(long double x[], long double forcelength){
   //long double rho = x[3];
   long double theta = x[4];
   //cout << x[3] << " " << rho << endl;
-  //long double dftot = (\hat{\sigma} \cdot (\vec{v})\time \hat{rho}) (1/rho\lambda+1/rho^2)exp(-rho/\lambda) rho^2 \sin(\theta)
-  //= (\rho\sin(\theta)\omega)(-\sin(\theta))(1/rho\lambda+1/rho^2)rho^2 exp(-rho/\lambda) dr \sin\thetad\theta
-  //= (-\rho\omega)(\rho/\lambda+1)r^\prime(-\lambda/r^\prime dr^\prime) \sin^3\theta d\ehta
-  //= (\rho\omega)(\rho+\lambda)dr^\prime \sin^3 d\theta
-
-  long double dftot = (forcelength+rho)*(rho*omega)*pow(sin(theta),3); // rotation
+  long double dftot = (forcelength+rho)*(rho*omega)*pow(sin(theta),2); // rotation
 
   ///////////////////////////////////////
   //velocity is perpendicular to sigma_1
@@ -303,12 +290,9 @@ long double f6(long double x[], long double forcelength){
   long double rho = -forcelength*log(x[3]);
   //long double rho = x[3];
   long double theta = x[4];
+  long double phi = x[5];
   //cout << x[3] << " " << rho << endl;
-  //long double dftot = (\sigma_1\cdot v)(\sigma\cdot\hat{r})(1/\rho\lmabda + 1/\rho^2) e^{-\rho/\lambda} \rho^2 d\rho \sin\theta d\theta
-  //=(v)(\cos\theta)(\rho/\lambda+1)r^\prime(-\lambda/r^\prime dr^\prime)\sin\theta d\theta
-  //= -v (\rho+\lambda) \cos\theta\sin\theta dr^\prime d\theta
-
-  long double dftot = -V*(rho+forcelength)*(sin(theta)*cos(theta));
+  long double dftot = -V*(rho+forcelength)*(pow(sin(theta),2)*cos(phi));
   return dftot;
 }
 
@@ -337,13 +321,14 @@ long double f9(long double x[], long double forcelength){
   long double rho = -forcelength*log(x[3]);
   //long double rho = x[3];
   long double theta = x[4];
+  long double phi = x[5];
   //cout << x[3] << " " << rho << endl;
   //long double dftot = (1./pow(\rho,2)+1./(\rho\lambda))*cos(theta)*exp(-rho/forcelength);
   //*pow(rho,2)*sin(theta);
   //=(1+\rho/\lambda)(-\lambda dr^\prime)(\cos\theta\sin\theta d\theta)
   //=-(\lambda+\rho)(\cos\theta\sin\theta)dr^\prime d\theta
 
-  long double dftot = -(forcelength+rho)*sin(theta)*cos(theta);
+  long double dftot = -(forcelength+rho)*pow(sin(theta),2)*cos(phi);
 
   //do a transform : r^\prime = \exp(-r/\lambda)
   // dr = -\lambda/r^\prime dr^\prime
@@ -362,7 +347,7 @@ long double f11(long double x[], long double forcelength){
   //=(-\sin\theta)(1+\rho/\lambda)(-\lambda dr^\prime)(\sin\theta d\theta)
   //=(\lambda+\rho)(\sin\theta\sin\theta)dr^\prime d\theta
 
-  long double dftot = (forcelength+rho)*sin(theta)*sin(theta);
+  long double dftot = -(forcelength+rho)*cos(theta)*sin(theta);
 
   //do a transform : r^\prime = \exp(-r/\lambda)
   // dr = -\lambda/r^\prime dr^\prime
@@ -407,9 +392,8 @@ long double f15(long double x[], long double forcelength){
   //long double rho = x[3];                                                     
   long double theta = x[4];
   //cout << x[3] << " " << rho << endl;                                       
-  long double dftot = 2*omega*pow(sin(theta),3)*cos(theta)*(rho*rho/forcelength+3*rho+3*forcelength);
-  //velocity is prependicular to the sigma_1 and simga_2; simga_1 // sigma_2
-  //long double dftot = 2*V*pow(sin(theta),2)*cos(theta)*(rho/forcelength+3+3*forcelength/rho);
+  long double dftot = 2*omega*pow(sin(theta),2)*cos(theta)*(rho*rho/forcelength+3*rho+3*forcelength);
+
 
   //cout << x[3] << " " << rho << " " << theta << " " << rho*(3+3*rho/forcelength+pow((rho/forcelength),2)) <<" " << dftot << endl;
   return dftot;
@@ -420,15 +404,16 @@ long double f16(long double x[], long double forcelength){
   //case 2 : sigma_1 and velocity are parallel and perpendicular to sigma_2
 
   long double rho = -forcelength*log(x[3]);
+  long double phi = x[5];
   //long double rho = x[3];                                                     
   long double theta = x[4];
   //cout << x[3] << " " << rho << endl;                                       
-  long double dftot = V*V*sin(theta)*sin(theta)*(rho+forcelength);
+  long double dftot = V*V*sin(theta)*sin(theta)*cos(phi)*(rho+forcelength);
 
   return dftot;
 }
 
-long double integration(long double range, int index_f,int position){
+long double integration(long double range, int index_f,int distance, int position){
 
   int n = 6;
 
@@ -439,7 +424,7 @@ long double integration(long double range, int index_f,int position){
   long double asinom1 = amp*sin(omega*1*0.25); // the distance because of moving; t=1/4, omega=2pi*1, maximum distance
   long double asinom2 = 0.;
   long double asinom = asinom2;
-  if( position ==1){
+  if( distance ==1){
     asinom = asinom1;
   }else{
     asinom = asinom2;
@@ -458,12 +443,21 @@ long double integration(long double range, int index_f,int position){
   // mass
   //up2[0] = shape2[0]/2.;
   //low2[0] = -shape2[0]/2.;
-  up2[2] = 1.*shape2[0]; // Move the mass off the center
-  low2[2] = 0.*shape2[0]; 
-  up2[1] = shape2[1]/2.;
-  low2[1] = -shape2[1]/2.;  
-  up2[0] = shape2[2]+gap+asinom+ shape1[2]/2; // 
-  low2[0] = gap+asinom+shape1[2]/2;
+  if(position == 0){
+    up2[0] = 0.5*shape2[0]; // At y surface
+    low2[0] = -0.5*shape2[0]; 
+    up2[1] = shape2[1]/2.;
+    low2[1] = -shape2[1]/2.;  
+    up2[2] = shape2[2]+gap+asinom+ shape1[2]/2; // 
+    low2[2] = gap+asinom+shape1[2]/2;
+  }else if(position == 1){
+    up2[2] = 0.5*shape2[0]; // At x surface
+    low2[2] = -0.5*shape2[0];
+    up2[1] = shape2[1]/2.;
+    low2[1] = -shape2[1]/2.;
+    up2[0] = shape2[2]+gap+asinom+ shape1[2]/2; //
+    low2[0] = gap+asinom+shape1[2]/2;
+  }
   for(int i=0;i<3;i++){
     cout << "detector up="<<up1[i] << " detector low=" << low1[i] <<  " mass up=" << up2[i] << " mass low=" << low2[i] << endl;
   }
@@ -622,12 +616,13 @@ long double integration(long double range, int index_f,int position){
 //Main****************************************************************************************************
 int main(int argc, char** argv)
 {
-  if(argc != 3) {
-    cout << "Usage: " << argv[0] << "[Interaction] [position]" << endl;
+  if(argc != 4) {
+    cout << "Usage: " << argv[0] << "[Interaction] [distance] [position]" << endl;
     return 1;
   }
   int index_f = atoi(argv[1]);
-  int position = atoi(argv[2]);
+  int distance  = atoi(argv[2]);
+  int position = atoi(argv[3]);
   long double range = 0.;
   long double x= 0.;
   long double y= 0.1;
@@ -648,7 +643,7 @@ int main(int argc, char** argv)
   for(int i = 0; i< 6;i++){
     for(int j = 1 ; j <=9;j++){
       range = 0.00001*pow(10,i)*j*pow(unit,1); // force interaction length (m)
-      x=integration(range,index_f,position);
+      x=integration(range,index_f,distance, position);
       y=abs(freqshift*hbar/x);
       fout1 << range << " " << x << endl;
       fout2 << range << " " << log10(y) << endl;

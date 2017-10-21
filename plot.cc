@@ -67,6 +67,25 @@ Double_t horizontal(Double_t *v, Double_t *par){
   return fitval;
 }
 
+
+
+TGraph* GetGraph(vector<Double_t> Px, vector<Double_t> Py){
+  const Int_t nPy = Py.size();
+
+  Double_t A[nPy];
+  Double_t B[nPy];
+
+  for(Int_t j=0;j<nPy;j++){
+    A[j]=Px.at(j);
+    B[j]=Py.at(j);
+  }
+  TGraph* fGraph = new TGraph(nPy,A,B);
+  fGraph->SetFillStyle(0);
+  fGraph->SetFillColor(0);
+  return fGraph;
+}
+
+
 int main(int argc, char** argv)
 {
   if(argc != 5) {
@@ -88,29 +107,87 @@ int main(int argc, char** argv)
   string filename3 = file2 + ind + "_" +pos+".pdf";
 
   string forcename = "";
+  int DataList = 1;
+  vector<string> DataName;
+  vector<string> LegName;
+  DataName.push_back(filename2);
   if(index_f ==2){
     forcename = "2";
+    DataName.push_back("./data/Eot-Wash.2.txt"); // Heckel PRL111,151802
+    DataName.push_back("./data/UVA.2.txt"); //Ritter, PRD42, 977
+    DataName.push_back("./data/Kotler.2.txt");
   }else if(index_f == 3){
     forcename = "3";
+    DataName.push_back("./data/Terrano.3.txt");
+    DataName.push_back("./data/Eot-Wash.3.txt");
+    DataName.push_back("./data/NTHU.3.txt");
+    DataName.push_back("./data/Kotler.3.txt");
+    DataName.push_back("./data/axion.txt");
   }else if(index_f == 4){
     forcename = "4+5";
+    DataName.push_back("./data/stellar.4.txt");
   }else if(index_f == 6){
     forcename = "6+7";
   }else if(index_f == 8){
     forcename = "8";
   }else if(index_f == 9){
     forcename = "9+10";
+    DataName.push_back("./data/Hammond.9.txt");
+    DataName.push_back("./data/Ni.9.txt");
+    DataName.push_back("./data/Eot.9.txt");
+    DataName.push_back("./data/Terrano.9.txt");
+    DataName.push_back("./data/quax.9.txt");
+    DataName.push_back("./data/axion.9.txt");
+    DataName.push_back("./data/stellar.9.txt");
   }else if(index_f == 11){
     forcename = "11";
+    DataName.push_back("./data/Eot-Wash.11.txt");
+
   }else if(index_f == 12){
     forcename = "12+13";
   }else if(index_f == 14){
     forcename = "14";
   }else if(index_f == 15){
     forcename = "15";
+    DataName.push_back("./data/darkphoton.3.txt");
   }else if(index_f == 16){
     forcename = "16";
   }
+  DataList = DataName.size();
+  vector<Int_t> Color;
+  Color.push_back(2);
+  Color.push_back(3);
+  Color.push_back(4);
+  Color.push_back(6);
+  Color.push_back(7);
+  Color.push_back(8);
+  Color.push_back(9);
+  Color.push_back(12);
+  Color.push_back(28);
+  Color.push_back(32);
+  Color.push_back(37);
+  Color.push_back(38);
+  Color.push_back(41);
+  Color.push_back(44);
+  Color.push_back(46);
+  Color.push_back(49);
+
+
+  vector<Int_t> Style;
+  Style.push_back(20);
+  Style.push_back(24);
+  Style.push_back(21);
+  Style.push_back(25);
+  Style.push_back(22);
+  Style.push_back(26);
+  Style.push_back(23);
+  Style.push_back(32);
+  Style.push_back(33);
+  Style.push_back(27);
+  Style.push_back(34);
+  Style.push_back(28);
+  Style.push_back(29);
+  Style.push_back(30);
   
   gStyle->SetOptStat(0);
   gStyle->SetOptFit(111);
@@ -118,72 +195,29 @@ int main(int argc, char** argv)
   TCanvas *c1 = new TCanvas("c1", "Human-Readable Name");
   c1->SetFillColor(0);  
 
-  const int input =1;
+  const int input =DataList;
+
   ifstream fin[input];
-  fin[0].open(filename2);
-  //  fin[1].open("./data/Long.12.txt");
-  //fin[2].open("./data/Chu.12.txt");
-  //fin[3].open("./data/coupling.12.opt.txt");
-
-  //fin[3].open("./data/NIST.12.txt");
-
   double r1, r2;
   vector<double> Lambda[input];
   vector<double> Coupling[input];
-  for(int i=0;i<input;i++){
+  TGraph *g[input];
+
+  for(int i = 0;i<input;i++){
+    cout << DataName.at(i) << endl;
+    fin[i].open(DataName.at(i));
     if(fin[i].is_open()){
       while(!fin[i].eof()){
 	fin[i] >> r1 >> r2;
 	Lambda[i].push_back(r1);
 	Coupling[i].push_back(r2);
+	cout << r1 << " " << r2 << endl;
       }
     }
     Lambda[i].pop_back();
     Coupling[i].pop_back();
+    g[i] = GetGraph(Lambda[i],Coupling[i]);
   }
-  //for(int i=0;i<4;i++){
-  //  for(int j=0;j<Lambda[i].size();j++){
-  //    cout << Lambda[i].at(j) << " " << Coupling[i].at(j) << endl;
-  //  }
-  //}
-
-  const int n1 = Lambda[0].size();
-  /*
-  const int n2 = Lambda[1].size();
-  const int n3 = Lambda[2].size();
-  const int n4 = Lambda[3].size();
-  */
-  double X1[n1],Y1[n1];
-  /*
-  double X2[n2],Y2[n2];
-  double X3[n3],Y3[n3];
-  double X4[n4],Y4[n4];
-  */
-  for(int i = 0;i<n1;i++){
-    X1[i] = Lambda[0].at(i);
-    Y1[i] = Coupling[0].at(i);
-  }
-  /*
-  for(int i = 0;i<n2;i++){
-    X2[i] = Lambda[1].at(i);
-    Y2[i] = Coupling[1].at(i);
-  }
-  for(int i = 0;i<n3;i++){
-    X3[i] = Lambda[2].at(i);
-    Y3[i] = Coupling[2].at(i);
-  }
-
-  for(int i = 0;i<n4;i++){
-    X4[i] = Lambda[3].at(i);
-    Y4[i] = Coupling[3].at(i);
-  }
-  */
-  TGraph *g[input];
-  g[0] = new TGraph(n1,X1,Y1);
-  //  g[1] = new TGraph(n2,X2,Y2);
-  //g[2] = new TGraph(n3,X3,Y3);
-  //g[3] = new TGraph(n4,X4,Y4);
-
 
   c1->SetLogx();
   TMultiGraph *mg = new TMultiGraph();
@@ -191,25 +225,14 @@ int main(int argc, char** argv)
     g[i]->GetXaxis()->SetTitle("lambda(m)");
     g[i]->GetYaxis()->SetTitle("Log(gg)");
     g[i]->GetYaxis()->SetTitleOffset(1.3);
-    g[i]->SetMarkerStyle(7);
+    g[i]->SetLineColor(Color.at(i));
+    g[i]->SetMarkerStyle(Style.at(i));
     g[i]->SetMarkerSize(1);
     g[i]->SetLineWidth(3);
     mg->Add(g[i],"l");
   }
   
-  g[0]->SetLineStyle(7);
-  g[0]->SetLineWidth(4);
-  g[0]->SetLineColor(2);
-  /*
-  g[1]->SetLineStyle(3);
-  g[1]->SetLineColor(3);
 
-  g[2]->SetLineStyle(4);
-  g[2]->SetLineColor(4);
-
-  g[3]->SetLineStyle(7);
-  g[3]->SetLineColor(46);
-  */
   gPad->SetLeftMargin(0.12);
   gPad->SetBottomMargin(0.12);
   gPad->SetRightMargin(0.08);
@@ -240,8 +263,53 @@ int main(int argc, char** argv)
   ax1->SetTitleSize(0.);
   ax1->SetTitleOffset(1.2);
   ax1->Draw();
+  TLatex latex;
+  if(ind == "2"){
+    latex.SetTextSize(0.05);
+    latex.DrawLatex(2e-4,-30,"case 4");
+    latex.SetTextSize(0.04);
+    latex.DrawLatex(2e-6,-16,"Kotler, PRL115, 081801");
+    latex.SetTextSize(0.035);
+    latex.DrawLatex(3e-3,-28,"Ritter, PRD42, 977");
+    latex.DrawLatex(6e-4,-38,"Heckel, PRL111,151802");
+  }else if(ind == "3"){
+    latex.SetTextSize(0.05);
+    latex.DrawLatex(3e-5,-29,"Axion");
+    latex.DrawLatex(1.3e-4,-7,"This Work");
+    latex.SetTextSize(0.04);
+    latex.DrawLatex(2e-6,-5,"Kotler, PRL115, 081801");
+    latex.DrawLatex(2e-3,-18,"Terrano, PRL115,201801");
+    latex.SetTextSize(0.035);
+    latex.DrawLatex(2e-3,-3,"Ni, Physica 194B-196B, 153");
+    latex.DrawLatex(4e-3,-9,"Heckel, PRL111,151802");
+  }else if(ind == "4"){
+    latex.DrawLatex(1e-3,-21,"This Work");
+    latex.DrawLatex(3e-4,-31,"stellar cooling");
+  }else if(ind == "9"){
+    latex.SetTextSize(0.04);
+    latex.DrawLatex(2.25e-5,-34.5,"Axion");
+    latex.SetTextSize(0.05);
+    latex.DrawLatex(1.4e-4,-20,"This Work");
+    latex.SetTextSize(0.04);
+    latex.DrawLatex(3e-5,-28,"Terrano, PRL115,201801");
+    latex.SetTextSize(0.035);
+    latex.DrawLatex(3e-2,-27,"Ni,PRL82 2439");
+    latex.DrawLatex(1e-2,-30,"Crescinia, PLB773, 677");
+    latex.DrawLatex(2e-6,-24,"Hodel, PRL106,041801");
+    latex.DrawLatex(3e-3,-22,"Hammond, PRL98,081101");
+    latex.DrawLatex(2e-4,-31.2,"stellar cooling");
+  }else if(ind == "11"){
+    latex.SetTextSize(0.05);
+    latex.DrawLatex(2e-4,-18,"This Work");
+    latex.DrawLatex(1e-4,-26,"Heckel, PRL111,151802");
+  }else if(ind == "15"){
+    latex.SetTextSize(0.05);
+    latex.DrawLatex(2e-2,-2,"This Work");
+    latex.SetTextSize(0.04);
+    latex.SetTextAngle(15);
+    latex.DrawLatex(1e-4,-19.,"Dark Photon");
+  }
 
-  //TLatex latex;
   //latex.SetTextSize(0.05);
   //latex.DrawLatex(1.4e-4,-25,"case 1");
 

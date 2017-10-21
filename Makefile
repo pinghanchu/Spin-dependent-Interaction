@@ -3,7 +3,7 @@ include $(MGDODIR)/buildTools/config.mk
 # Give the list of applications, which must be the stems of cc files with 'main'.  There
 # can be more than one.  In our example, this means there is a test.cc and a test1.cc
 APPS = plot spindependentinteraction spindependentinteraction_ER
-# The next two lines are important 
+# The next two lines are important
 SHLIB = 
 ARCHIVE = 
 TAMDIR ?= $(ROOTSYS)
